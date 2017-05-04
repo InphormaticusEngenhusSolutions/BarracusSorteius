@@ -52,6 +52,7 @@ namespace JSON
                 }
             }
             Console.WriteLine(oRootObject.data.Length + " Posts");
+            Console.WriteLine("Verification made at: " + DateTime.Now.ToString());
 
             Console.Write("Press <Enter> to exit... ");
             while (Console.ReadKey().Key != ConsoleKey.Enter) { }
