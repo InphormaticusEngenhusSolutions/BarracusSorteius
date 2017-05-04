@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Facebook;
 using System.Configuration;
+using System.Globalization;
 
 namespace JSON
 {
@@ -30,7 +31,7 @@ namespace JSON
 
             // Set limit date for posting
             string dateTime = "05/03/2017 23:59:59.42";
-            DateTime dt = Convert.ToDateTime(dateTime);
+            DateTime dt = Convert.ToDateTime(dateTime, CultureInfo.InvariantCulture);
 
             // Print the result
             foreach (var data in query)
