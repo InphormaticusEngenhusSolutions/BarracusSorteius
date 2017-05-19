@@ -7,6 +7,21 @@ using System.Threading.Tasks;
 namespace JSON
 {
 
+
+    public class Images
+    {
+        public Image[] images { get; set; }
+        public string id { get; set; }
+    }
+
+    public class Image
+    {
+        public int height { get; set; }
+        public string source { get; set; }
+        public int width { get; set; }
+    }
+
+
     public class Rootobject
     {
         public Datum[] data { get; set; }
