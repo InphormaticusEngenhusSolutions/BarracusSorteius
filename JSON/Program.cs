@@ -18,7 +18,11 @@ namespace JSON
         {
             if (args[0] == "json")
             {
-                json();
+                jsonFut();
+            }
+            else if (args[0] == "jsonLoop")
+            {
+                jsonLoop();
             }
             else
             {
@@ -118,6 +122,132 @@ namespace JSON
             }
             Console.WriteLine(oRootObject.data.Length + " Posts");
             Console.WriteLine("Verification made at: " + DateTime.Now.ToString());
+        }
+
+        public static void jsonFut()
+        {
+            // Configure fbclient and send the request
+            var client = new FacebookClient();
+            client.AccessToken = ConfigurationManager.AppSettings["sdk"];
+            var groupid = ConfigurationManager.AppSettings["groupid"];
+            client.AppId = "v3.3";
+            var get = client.Get(groupid + "\\feed");
+            string text = Convert.ToString(get);
+
+            // Serialize fb api request
+            JavaScriptSerializer oJS = new JavaScriptSerializer();
+            Rootobject oRootObject = new Rootobject();
+            oRootObject = oJS.Deserialize<Rootobject>(text);
+
+            // Order by date 
+            Datum query = oRootObject.data
+                            .OrderByDescending(dat => dat.updated_time)
+                            .ElementAt(0);
+
+            // Split into list of players
+            List<string> players = query.message.Split(new[] { "\n" }, StringSplitOptions.None)
+                            .ToList();
+
+            // Print the result
+            foreach (var data in players)
+            {
+                if (data == null || data.Contains('|') || data == "")
+                {
+                    Console.WriteLine("Invalid Player:" + data);
+                }
+                else
+                {
+                    Console.WriteLine("Player:" + data);
+                }
+            }
+            Console.WriteLine("Verification made at: " + DateTime.Now.ToString());
+        }
+
+        public static void jsonLoop()
+        {
+            // Configure fbclient and send the request
+            var client = new FacebookClient();
+            client.AccessToken = ConfigurationManager.AppSettings["sdk"];
+            var groupid = ConfigurationManager.AppSettings["groupid"];
+            client.AppId = "v3.3";
+            var get = client.Get(groupid + "\\feed?limit=100");
+            string text = Convert.ToString(get);
+
+            // Serialize fb api request
+            JavaScriptSerializer oJS = new JavaScriptSerializer();
+            Rootobject oRootObject = new Rootobject();
+            oRootObject = oJS.Deserialize<Rootobject>(text);
+
+            // Order by date 
+            List<Datum> queryAll = oRootObject.data
+                            .OrderByDescending(dat => dat.updated_time)
+                            .ToList();
+
+            // Filter words
+            List<string> wordsToFilter = ConfigurationManager.AppSettings["wordsToFilter"]
+                                            .Split(';')
+                                            .ToList();
+
+            List<string> playersCount = new List<string>();
+            // Create output file
+            using (StreamWriter streamWriter = new StreamWriter(@"C:\Users\hmatos\Downloads\futLoop.csv", false, Encoding.Unicode))
+            {
+                int index = 0;
+                foreach (Datum query in queryAll)
+                {
+
+                    // Split into list of players
+                    List<string> players = query.message.Split(new[] { "\n" }, StringSplitOptions.None)
+                                    .ToList();
+
+                    if (query.message.Length > 100)
+                    {
+
+                        streamWriter.Write(++index + ", " + query.id + ", " + query.updated_time + ", ");
+
+
+                        // Print the result
+                        foreach (var data in players)
+                        {
+
+                            if (data == null || data.Contains('|') || data == "" || data.ToLower().Split(' ').ToList().Select(x => x.Trim())
+                                                                                            .Intersect(wordsToFilter)
+                                                                                            .Any())
+                            {
+                                //Console.WriteLine("Invalid Player:" + data);
+                            }
+                            else
+                            {
+                                streamWriter.Write(data + ", ");
+                                playersCount.Add(data.Trim());
+                                //Console.WriteLine("Player:" + data);
+                            }
+                        }
+
+                        streamWriter.WriteLine();
+                    }
+                }
+            }
+
+            Dictionary<string, int> dictionary = new Dictionary<string, int>();
+
+            List<string> listDistinct = playersCount.Distinct().ToList();
+            foreach (var player in listDistinct) {
+                dictionary.Add(player, playersCount.Count(x => x.Equals(player)));
+            }
+
+            using (StreamWriter streamWriter = new StreamWriter(@"C:\Users\hmatos\Downloads\futLoopCount.csv", false, Encoding.Unicode))
+            {
+                streamWriter.WriteLine("Player, Count");
+                foreach(var dict in dictionary)
+                {
+                    streamWriter.WriteLine(dict.Key + ", " + dict.Value);
+                }
+                
+            }
+
+
+                Console.WriteLine("Verification made at: " + DateTime.Now.ToString());
         }
     }
 }

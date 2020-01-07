@@ -47,6 +47,7 @@ namespace JSON
         public bool can_remove { get; set; }
         public int like_count { get; set; }
         public Message_Tags[] message_tags { get; set; }
+        public DateTime updated_time { get; set; }
         public bool user_likes { get; set; }
         public string id { get; set; }
     }
